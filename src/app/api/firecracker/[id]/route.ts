@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Firecracker from "@/models/Firecracker";
 import { verifyJWT } from "@/lib/auth";
@@ -7,83 +7,82 @@ import path from "path";
 import mongoose from "mongoose";
 /* ================= GET: รายตัว ================= */
 export async function GET(
-    req: Request,
-    context: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = await context.params; // ✅ ต้อง await
+  const { id } = await params;
 
-    await connectDB();
+  await connectDB();
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return NextResponse.json(
-            { message: "Invalid ID" },
-            { status: 400 }
-        );
-    }
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+  }
 
-    const data = await Firecracker.findById(id);
+  const data = await Firecracker.findById(id);
 
-    if (!data) {
-        return NextResponse.json(
-            { message: "Not found" },
-            { status: 404 }
-        );
-    }
+  if (!data) {
+    return NextResponse.json({ message: "Not found" }, { status: 404 });
+  }
 
-    return NextResponse.json(data);
+  return NextResponse.json(data);
 }
 
 /* ================= PUT: แก้ไขสินค้า ================= */
 export async function PUT(
-    req: Request,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    await verifyJWT();
-    await connectDB();
+  const { id } = await params;
 
-    const formData = await req.formData();
-    const update: any = {
-        name: formData.get("name"),
-        price: Number(formData.get("price")),
-        stock: Number(formData.get("stock")),
-        unit: formData.get("unit"),
-        description: formData.get("description"),
-    };
+  await verifyJWT();
+  await connectDB();
 
-    const file = formData.get("image") as File | null;
-    if (file) {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
+  const formData = await request.formData();
 
-        const dir = path.join(process.cwd(), "public/uploads/Firecracker");
-        fs.mkdirSync(dir, { recursive: true });
+  const update: any = {
+    name: formData.get("name"),
+    price: Number(formData.get("price")),
+    stock: Number(formData.get("stock")),
+    unit: formData.get("unit"),
+    description: formData.get("description"),
+  };
 
-        const filename = `${Date.now()}-${file.name}`;
-        fs.writeFileSync(path.join(dir, filename), buffer);
-        update.image = `/uploads/Firecracker/${filename}`;
-    }
+  const file = formData.get("image") as File | null;
+  if (file) {
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-    const data = await Firecracker.findByIdAndUpdate(params.id, update, {
-        new: true,
-    });
+    const dir = path.join(process.cwd(), "public/uploads/Firecracker");
+    fs.mkdirSync(dir, { recursive: true });
 
-    return NextResponse.json(data);
+    const filename = `${Date.now()}-${file.name}`;
+    fs.writeFileSync(path.join(dir, filename), buffer);
+
+    update.image = `/uploads/Firecracker/${filename}`;
+  }
+
+  const data = await Firecracker.findByIdAndUpdate(id, update, { new: true });
+
+  return NextResponse.json(data);
 }
+
 
 /* ================= DELETE: ลบสินค้า ================= */
 export async function DELETE(
-    req: Request,
-    { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    await verifyJWT();
-    await connectDB();
+  const { id } = await params;
 
-    const data = await Firecracker.findByIdAndDelete(params.id);
+  await verifyJWT();
+  await connectDB();
 
-    if (data?.image) {
-        const filePath = path.join(process.cwd(), "public", data.image);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
+  const data = await Firecracker.findByIdAndDelete(id);
 
-    return NextResponse.json({ success: true });
+  if (data?.image) {
+    const filePath = path.join(process.cwd(), "public", data.image);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
+
+  return NextResponse.json({ success: true });
 }

@@ -17,8 +17,8 @@ export default function SignInForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault(); // ❗ สำคัญ
+  async function handleSubmit() {
+    // e.preventDefault(); // ❗ สำคัญ
     setError("");
 
     const res = await fetch("/api/auth/login", {
@@ -109,13 +109,13 @@ export default function SignInForm() {
                 </span>
               </div>
             </div> */}
-            <form onSubmit={handleSubmit}>
+            <form >
               <div className="space-y-6">
                 <div>
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="info@gmail.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
+                  <Input placeholder="info@gmail.com" type="email" defaultValue={email} onChange={(e) => setEmail(e.target.value)}/>
                 </div>
                 <div>
                   <Label>
@@ -125,7 +125,7 @@ export default function SignInForm() {
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
-                      value={password}
+                      defaultValue={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                     <span
@@ -155,7 +155,7 @@ export default function SignInForm() {
                   </Link>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm" type="submit">
+                  <Button className="w-full" size="sm" onClick={() => handleSubmit()}>
                     Sign in
                   </Button>
                 </div>
