@@ -17,16 +17,15 @@ export default function SignInForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  async function handleSubmit() {
-    // e.preventDefault(); // ❗ สำคัญ
+  async function handleSubmit(e: any) {
+    e.preventDefault(); // ❗ สำคัญ
     setError("");
-
+    
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-
     if (!res.ok) {
       setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
       return;
@@ -109,7 +108,7 @@ export default function SignInForm() {
                 </span>
               </div>
             </div> */}
-            <form >
+            <form onSubmit={handleSubmit}>
               <div className="space-y-6">
                 <div>
                   <Label>
@@ -155,7 +154,7 @@ export default function SignInForm() {
                   </Link>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm" onClick={() => handleSubmit()}>
+                  <Button className="w-full" size="sm" >
                     Sign in
                   </Button>
                 </div>
