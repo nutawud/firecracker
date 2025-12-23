@@ -32,7 +32,7 @@ export default function SignInForm() {
     }
 
     // login สำเร็จ → ไป dashboard
-    router.push("/");
+    router.push("/dashboard");
   }
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
